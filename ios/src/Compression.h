@@ -32,6 +32,10 @@
           withOptions:(NSDictionary*)options
               handler:(void (^)(AVAssetExportSession*))handler;
 
+- (void)compressWithExportSession:(AVAssetExportSession*)exportSession
+          withOptions:(NSDictionary*)options
+              handler:(void (^)(AVAssetExportSession*))handler;
+
 @property NSDictionary *exportPresets;
 
 @end

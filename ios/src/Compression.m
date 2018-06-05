@@ -108,4 +108,25 @@
     }];
 }
 
+- (void)compressWithExportSession:(AVAssetExportSession*)exportSession
+                      withOptions:(NSDictionary*)options
+                          handler:(void (^)(AVAssetExportSession*))handler {
+    
+    NSString *presetKey = [options valueForKey:@"compressVideoPreset"];
+    if (presetKey == nil) {
+        presetKey = @"MediumQuality";
+    }
+    
+    NSString *preset = [self.exportPresets valueForKey:presetKey];
+    if (preset == nil) {
+        preset = AVAssetExportPresetMediumQuality;
+    }
+    
+    [[NSFileManager defaultManager] removeItemAtURL:outputURL error:nil];
+    
+    [exportSession exportAsynchronouslyWithCompletionHandler:^(void) {
+        handler(exportSession);
+    }];
+}
+
 @end
