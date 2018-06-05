@@ -122,7 +122,7 @@
         preset = AVAssetExportPresetMediumQuality;
     }
     
-    [[NSFileManager defaultManager] removeItemAtURL:outputURL error:nil];
+    [[NSFileManager defaultManager] removeItemAtURL:exportSession.outputURL error:nil];
     
     [exportSession exportAsynchronouslyWithCompletionHandler:^(void) {
         handler(exportSession);
