@@ -393,14 +393,18 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
         [loadingView addSubview:activityView];
 
         // create message
-        UILabel *loadingLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 115, 130, 22)];
-        loadingLabel.backgroundColor = [UIColor clearColor];
-        loadingLabel.textColor = [UIColor whiteColor];
-        loadingLabel.adjustsFontSizeToFitWidth = YES;
-        CGPoint loadingLabelLocation = loadingView.center;
-        loadingLabelLocation.y += [activityView bounds].size.height;
-        loadingLabel.center = loadingLabelLocation;
-        loadingLabel.textAlignment = NSTextAlignmentCenter;
+        UILabel* loadingLabel = self.loadingLabel;
+        if (!self.loadingLabel) {
+            loadingLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 115, 280, 22)];
+            loadingLabel.backgroundColor = [UIColor clearColor];
+            loadingLabel.textColor = [UIColor whiteColor];
+            loadingLabel.adjustsFontSizeToFitWidth = YES;
+            CGPoint loadingLabelLocation = loadingView.center;
+            loadingLabelLocation.y += [activityView bounds].size.height;
+            loadingLabel.center = loadingLabelLocation;
+            loadingLabel.textAlignment = NSTextAlignmentCenter;
+            self.loadingLabel = loadingLabel;
+        }
         loadingLabel.text = [self.options objectForKey:@"loadingLabelText"];
         [loadingLabel setFont:[UIFont boldSystemFontOfSize:18]];
         [loadingView addSubview:loadingLabel];
@@ -413,12 +417,27 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
     });
 }
 
+- (void)updateLabelStatus:(NSString*)text {
+    if (NSThread.currentThread.isMainThread) {
+        self.loadingLabel.text = text;
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.loadingLabel.text = text;
+        });
+    }
+}
 
 - (void) getVideoAsset:(PHAsset*)forAsset completion:(void (^)(NSDictionary* image))completion {
     PHImageManager *manager = [PHImageManager defaultManager];
     PHVideoRequestOptions *options = [[PHVideoRequestOptions alloc] init];
-    options.version = PHVideoRequestOptionsVersionOriginal;
-
+    options.version = PHVideoRequestOptionsVersionCurrent;
+    options.networkAccessAllowed = YES;
+    options.deliveryMode = PHVideoRequestOptionsDeliveryModeFastFormat;
+    options.progressHandler = ^(double progress, NSError * _Nullable error, BOOL * _Nonnull stop, NSDictionary * _Nullable info) {
+        [self updateLabelStatus:[NSString stringWithFormat:@"Downloading from iCloud (%.0f%%)", progress*100]];
+    };
+    
+    [self updateLabelStatus:[self.options objectForKey:@"loadingLabelText"]];
     [manager
      requestAVAssetForVideo:forAsset
      options:options
