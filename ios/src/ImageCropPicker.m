@@ -450,8 +450,8 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
             
             exportSession.outputURL = outputURL;
             exportSession.outputFileType = AVFileTypeMPEG4;
-            [self.compression compressWithExportSession:exportSession withOptions:self.options handler:^(AVAssetExportSession *) {
-                if (exportSession.status == AVAssetExportSessionStatusCompleted) {
+            [self.compression compressWithExportSession:exportSession withOptions:self.options handler:^(AVAssetExportSession *exSession) {
+                if (exSession.status == AVAssetExportSessionStatusCompleted) {
                     AVAsset *compressedAsset = [AVAsset assetWithURL:outputURL];
                     AVAssetTrack *track = [[compressedAsset tracksWithMediaType:AVMediaTypeVideo] firstObject];
                     
@@ -460,6 +460,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                          forKey:NSURLFileSizeKey
                                           error:nil];
                     
+                    NSURL *sourceURL = [(AVURLAsset *)exSession.asset URL];
                     completion([self createAttachmentResponse:[outputURL absoluteString]
                                                      withExif:nil
                                                 withSourceURL:[sourceURL absoluteString]
